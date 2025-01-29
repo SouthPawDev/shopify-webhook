@@ -15,15 +15,6 @@ let shopifyToken = '';
 
 app.use(bodyParser.json());
 
-app.get('/env', (req, res) => {
-    res.json({
-        BASE_URL: process.env.BASE_URL,
-        SHOPIFY_API_KEY: process.env.SHOPIFY_API_KEY,
-        SHOPIFY_PASSWORD: process.env.SHOPIFY_PASSWORD,
-        SHOPIFY_STORE: process.env.SHOPIFY_STORE,
-        SHOPIFY_NAME: process.env.SHOPIFY_NAME,
-    });
-});
 
 /* middleware
     * This middleware checks if the shopifyToken is set. If not, it redirects to the authentication route.
