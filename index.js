@@ -15,7 +15,14 @@ let shopifyToken = '';
 
 app.use(bodyParser.json());
 
-//middleware
+
+/* middleware
+    * This middleware checks if the shopifyToken is set. If not, it redirects to the authentication route.
+    * When testing, postman can't really handle redirects, so you can manually set the shopifyToken to test the other routes.
+    * go to the /auth route to authenticate and get the token.
+    * quick note: The /customer endpoint uses the middleware so you can use it to set the token and already see the customers.
+    * for that, use browser to be redirected.
+*/
 const authMiddleware = (req, res, next) => {
     if (!shopifyToken) {
         console.log('Redirecting to authentication...');
@@ -59,6 +66,12 @@ app.get('/token', async (req, res) => {
 });
 
 
+/*
+    This GraphQL endpoint serves the following purposes:
+    1. Fetching only the necessary customer fields (id, firstName, lastName, email) efficiently.
+    2. Retrieving up to 50 customers in a single request, minimizing API calls.
+    3. Identifying customers by email to modify their marketing consent.
+*/
 app.get('/customers', authMiddleware, async (req, res) => {
     const accessToken = shopifyToken;
 
@@ -94,8 +107,13 @@ app.get('/customers', authMiddleware, async (req, res) => {
     }
 });
 
-
-app.get('/customers/:email', async (req, res) => {
+/*
+    This endpoint fetches detailed information about a specific customer by their email address:
+    1. Uses the provided email to retrieve customer data from Shopify.
+    2. Returns customer details, including their profile and settings.
+    3. Useful for checking the current email marketing consent state.
+*/
+app.get('/customers/:email', authMiddleware, async (req, res) => {
     const { email } = req.params;
     const accessToken = shopifyToken;
 
@@ -120,6 +138,25 @@ app.get('/customers/:email', async (req, res) => {
     }
 });
 
+
+/*
+    This endpoint updates the marketing consent status for customers based on their email address:
+    1. This endpoint does not use the middleware because it is a POST request.
+       To test it using Postman, you must first authenticate using the /auth endpoint or any other endpoint that uses the middleware.
+    2. Example payload:
+       [
+           {
+               "contact_email": "example@example.com",
+               "propertyName": "accepts_marketing",
+               "propertyValue": "true"
+           },
+           {
+               "contact_email": "another@example.com",
+               "propertyName": "accepts_marketing",
+               "propertyValue": "false"
+           }
+       ]
+*/
 app.post('/marketing-consent', async (req, res) => {
     const input = req.body;
     const accessToken = shopifyToken;
